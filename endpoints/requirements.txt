@@ -1,0 +1,16 @@
+# ── Web Framework ──────────────────────────────────────────────────────────────
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+python-multipart==0.0.9
+
+# ── Document Parsing (Layout-Aware) ────────────────────────────────────────────
+docling==1.17.0
+
+# ── AI / Embeddings ────────────────────────────────────────────────────────────
+sentence-transformers==3.0.1
+chromadb==0.5.3
+
+# ── Utilities ──────────────────────────────────────────────────────────────────
+python-docx==1.1.2
+numpy==1.26.4
+pydantic==2.7.1
