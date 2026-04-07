@@ -1,6 +1,6 @@
 # TalentRank AI — Smart Talent Selection Engine
 
-TalentRank AIis a next-generation Applicant Tracking System (ATS) that moves beyond primitive keyword matching. By utilizing layout-aware document parsing and semantic vector similarity, it understands the intent behind a resume, ensuring qualified candidates are never overlooked due to synonymous terminology or complex formatting.
+TalentRank AI is a next-generation Applicant Tracking System (ATS) that moves beyond primitive keyword matching. By utilizing layout-aware document parsing and semantic vector similarity, it understands the intent behind a resume, ensuring qualified candidates are never overlooked due to synonymous terminology or complex formatting.
 
 ● The Problem
 Traditional ATS platforms rely on rigid keyword matching, causing recruiters to accidentally reject highly qualified candidates who use equivalent but different terminology. Furthermore, standard parsers often fail on modern, non-linear, or two-column resume layouts, leading to "text interleaving" that makes resumes unreadable for AI. With recruiters spending an average of 6 seconds per resume, these technical limitations lead to missed talent and hiring fatigue.
