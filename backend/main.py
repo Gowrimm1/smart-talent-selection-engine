@@ -2,10 +2,11 @@
 main.py — Smart Talent Selection Engine · FastAPI Backend
 
 Endpoints:
-  POST /analyze        — Upload a single resume PDF/DOCX; returns score + analysis.
-  POST /rank           — Upload multiple resumes against a JD; returns ranked list.
-  GET  /health         — Liveness check.
-  GET  /sample-jd      — Returns the built-in sample JD (handy for the demo).
+  POST /analyze            — Upload a single resume PDF/DOCX; returns score + analysis.
+  POST /rank               — Upload multiple resumes against a JD; returns ranked list.
+  POST /generate-questions — Upload resume + optional JD; returns categorised HR questions.
+  GET  /health             — Liveness check.
+  GET  /sample-jd          — Returns the built-in sample JD (handy for the demo).
 """
 
 from __future__ import annotations
@@ -22,6 +23,7 @@ from pydantic import BaseModel
 
 from parser import parse_resume
 from ranker import rank_multiple, rank_resume
+from question_generator import generate_interview_questions
 
 # ══════════════════════════════════════════════════════════════════════════════
 # App Setup
@@ -115,6 +117,19 @@ class RankResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str
     version: str
+
+
+class QuestionCategory(BaseModel):
+    category: str
+    icon: str
+    questions: list[str]
+
+
+class QuestionResponse(BaseModel):
+    filename: str
+    candidate_name: str
+    total_questions: int
+    categories: list[QuestionCategory]
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -277,6 +292,51 @@ async def rank_resumes(
         for p in tmp_paths:
             if p.exists():
                 os.unlink(p)
+
+
+@app.post("/generate-questions", response_model=QuestionResponse, tags=["Analysis"])
+async def generate_questions(
+    resume: Annotated[UploadFile, File(description="PDF or DOCX resume file")],
+    jd: Annotated[
+        str,
+        Form(description="Job Description text. Leave blank for built-in sample JD."),
+    ] = "",
+):
+    """
+    **Interview Question Generator.**
+
+    Analyses the resume and generates categorised interview questions for HR:
+    - 🧠 Technical Skills (based on tools/languages found in resume)
+    - 💼 Work Experience (based on roles, projects, internships)
+    - 🎯 Role Fit (based on JD gaps and alignment)
+    - 🌱 Behavioural (situational / soft skill questions)
+    - 📚 Education & Projects (based on academic background)
+    """
+    tmp_path: Path | None = None
+    try:
+        tmp_path = _save_upload(resume)
+        resume_text = parse_resume(tmp_path)
+        target_jd = jd.strip() if jd.strip() else SAMPLE_JD
+        result = generate_interview_questions(resume_text, target_jd)
+
+        return QuestionResponse(
+            filename=resume.filename or "unknown",
+            candidate_name=result["candidate_name"],
+            total_questions=result["total_questions"],
+            categories=[QuestionCategory(**c) for c in result["categories"]],
+        )
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Question generation failed: {exc}",
+        )
+    finally:
+        if tmp_path and tmp_path.exists():
+            os.unlink(tmp_path)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
